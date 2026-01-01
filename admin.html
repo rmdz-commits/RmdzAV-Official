@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Upload Project</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #00ff9d; --dark: #050505; --card: #111; --danger: #ff4444; }
+        * { box-sizing: border-box; font-family: 'Rajdhani', sans-serif; outline: none; }
+        
+        body {
+            background-color: var(--dark); color: white;
+            padding: 40px 20px; max-width: 900px; margin: 0 auto;
+            min-height: 100vh; overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- BACKGROUND EFFECTS --- */
+        /* 1. Light Orbs (Cahaya Blur Hijau) */
+        .light-orb { 
+            position: fixed; width: 600px; height: 600px; 
+            background: radial-gradient(circle, rgba(0, 255, 157, 0.08) 0%, rgba(0,0,0,0) 70%); 
+            border-radius: 50%; pointer-events: none; z-index: -4; 
+        }
+        .orb-1 { top: -150px; left: -150px; animation: orbFloat 10s infinite alternate; }
+        .orb-2 { bottom: -150px; right: -150px; animation: orbFloat 14s infinite alternate-reverse; }
+        @keyframes orbFloat { 0% { transform: translate(0,0); } 100% { transform: translate(80px, 40px); } }
+
+        /* 2. Worm Canvas */
+        canvas#worm-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2; pointer-events: none;
+        }
+
+        /* GATEKEEPER */
+        #gatekeeper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 9999;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            color: var(--danger);
+        }
+        #gatekeeper i { animation: pulseLock 1s infinite; }
+        @keyframes pulseLock { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+        h2 { 
+            border-bottom: 2px solid var(--primary); padding-bottom: 15px; margin-bottom: 30px;
+            color: var(--primary); text-transform: uppercase; letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(0,255,157,0.4);
+        }
+
+        /* --- FORM & INPUTS --- */
+        .form-group { margin-bottom: 20px; position: relative; }
+        
+        label { 
+            display: block; margin-bottom: 8px; color: #ccc; 
+            font-weight: bold; font-size: 0.9rem; text-transform: uppercase;
+        }
+        
+        /* GAYA INPUT LAMA (Solid & Simpel) */
+        input, select, textarea {
+            width: 100%; padding: 12px 15px; 
+            background: rgba(255,255,255,0.05); /* Agak terang dikit biar kelihatan */
+            border: 1px solid #333; 
+            color: white; border-radius: 8px;
+            font-size: 1rem; transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus { 
+            border-color: var(--primary); 
+            background: black; /* Solid saat fokus */
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
+        }
+
+        /* --- GLASSMORPHISM CONTAINERS --- */
+        /* Kotak pembungkus tetap ada efek kaca */
+        .security-box, #files-wrapper {
+            background: rgba(10, 10, 10, 0.6); /* Semi transparan gelap */
+            backdrop-filter: blur(10px); /* Efek Blur di belakangnya */
+            border: 1px solid #333;
+            border-radius: 15px; padding: 25px; margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .file-entry { 
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 2fr auto; 
+            gap: 10px; margin-bottom: 15px; padding: 15px;
+            background: #0a0a0a; border: 1px solid #222; border-radius: 10px;
+            align-items: center; 
+            animation: slideIn 0.4s ease forwards;
+        }
+        @keyframes slideIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 25px; border: none; border-radius: 30px; cursor: pointer;
+            font-weight: bold; text-transform: uppercase; letter-spacing: 1px;
+            transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem;
+        }
+        .btn-add { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-add:hover { background: var(--primary); color: black; box-shadow: 0 0 20px rgba(0, 255, 157, 0.4); }
+        .btn-del { background: rgba(255, 68, 68, 0.1); color: #ff4444; width: 35px; height: 35px; padding: 0; display: flex; justify-content: center; align-items: center; border-radius: 50%; }
+        .btn-del:hover { background: #ff4444; color: white; }
+
+        /* Security Box Specifics */
+        .security-box.generator-box { border-color: var(--primary); margin-top: 30px; }
+        .security-box.unlocked { border-color: var(--primary); background: rgba(0, 255, 157, 0.05); }
+        .sec-title { color: white; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; display: flex; gap: 10px; align-items: center; }
+        .sec-title i { color: var(--primary); }
+        .sec-input-group { display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; }
+        
+        .btn-unlock { background: var(--danger); color: white; width: 100%; }
+        .btn-unlock:hover { background: #cc0000; }
+
+        .btn-submit { background: #222; color: #777; width: 100%; padding: 15px; font-size: 1.2rem; cursor: not-allowed; border: 2px solid #333; }
+        .btn-submit.active { background: var(--primary); color: black; border-color: var(--primary); cursor: pointer; }
+        .btn-submit.active:hover { box-shadow: 0 0 30px rgba(0, 255, 157, 0.5); }
+
+        @media (max-width: 768px) {
+            .file-entry, .sec-input-group { grid-template-columns: 1fr; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="light-orb orb-1"></div>
+    <div class="light-orb orb-2"></div>
+
+    <canvas id="worm-canvas"></canvas>
+
+    <div id="gatekeeper">
+        <i class="fas fa-user-lock" style="font-size: 4rem; margin-bottom: 20px;"></i>
+        <h3>VERIFYING SECURE CONNECTION...</h3>
+    </div>
+
+    <h2><i class="fas fa-terminal"></i> ADMIN DASHBOARD</h2>
+
+    <form id="uploadForm">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>Judul Aplikasi</label>
+                <input type="text" id="title" placeholder="PXL PRO V2.1.0.1" required>
+            </div>
+
+            <div class="form-group">
+                <label>Kategori</label>
+                <input type="text" id="category" placeholder="PXL PRO / TOOLS / MOD" required>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+            <div class="form-group">
+                <label>Tanggal Upload</label>
+                <input type="date" id="date" required>
+            </div>
+
+            <div class="form-group">
+                <label>Image URL</label>
+                <input type="url" id="image_url" placeholder="https://..." required>
+            </div>
+        </div>
+
+        <div class="security-box generator-box">
+            <div class="sec-title">
+                <i class="fas fa-magic"></i> 1. LINK GENERATOR (UNTUK BICOLINK)
+            </div>
+            <p style="color: #aaa; font-size: 0.8rem; margin-bottom: 15px;">
+                Masukkan link asli (GitHub/Mediafire) untuk mendapatkan <b>Link Halaman Download Aman</b>.
+            </p>
+            <div class="form-group">
+                <label style="color: var(--primary);">Link Asli (Direct/Cloud):</label>
+                <input type="text" id="rawLink" placeholder="https://github.com/releases/download/...">
+                <button type="button" class="btn" onclick="generateSafeLink()" style="margin-top: 10px; background: transparent; color: var(--primary); border: 1px solid var(--primary); width: 100%; justify-content: center;">
+                    <i class="fas fa-bolt"></i> GENERATE LINK TUJUAN
+                </button>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label style="color: var(--primary);">Copy Link Ini & Paste di Destination Bicolink:</label>
+                <textarea id="safeLinkResult" readonly style="width: 100%; height: 80px; background: #000; color: var(--primary); border: 1px solid var(--primary); padding: 10px; border-radius: 8px; font-size: 0.85rem;"></textarea>
+                <button type="button" class="btn" onclick="copySafeLink()" style="margin-top: 10px; background: #222; color: white; font-size: 0.8rem; padding: 8px 15px; float: right;">
+                    <i class="fas fa-copy"></i> COPY LINK
+                </button>
+                <div style="clear:both;"></div>
+            </div>
+        </div>
+
+        <h3 style="margin-top: 40px; color: white; border-bottom: 1px solid #333; padding-bottom: 10px;">
+            <i class="fas fa-file-download"></i> 2. FILE LIST
+        </h3>
+        <p style="color: #888; font-size: 0.8rem; margin-bottom: 10px;">
+            *Masukkan Shortlink (Bicolink) pada kolom Link.
+        </p>
+        
+        <div id="files-wrapper">
+            <div id="files-container"></div>
+            <button type="button" class="btn btn-add" onclick="addFileRow()">
+                <i class="fas fa-plus"></i> TAMBAH FILE (AUTO COPY)
+            </button>
+        </div>
+
+        <div class="security-box" id="securityBox">
+            <div class="sec-title" id="secTitle">
+                <i class="fas fa-lock"></i> VERIFIKASI ADMIN (REQUIRED)
+            </div>
+            <div class="sec-input-group" id="secInputs">
+                <input type="email" id="secEmail" placeholder="Email Admin">
+                <input type="password" id="secPass" placeholder="Password Admin">
+                <button type="button" class="btn btn-unlock" onclick="verifyAdmin()">
+                    <i class="fas fa-key"></i> BUKA KUNCI
+                </button>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-submit" id="uploadBtn" disabled>
+            <i class="fas fa-lock"></i> TOMBOL TERKUNCI
+        </button>
+    </form>
+
+    <script>
+        function generateSafeLink() {
+            const raw = document.getElementById('rawLink').value.trim();
+            if(!raw) { alert("Isi link aslinya dulu!"); return; }
+            const encrypted = btoa(raw);
+            let baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+            const finalLink = `${baseUrl}/rz-download-file-usuwujwjeieje.html?data=${encrypted}`;
+            document.getElementById('safeLinkResult').value = finalLink;
+        }
+        function copySafeLink() {
+            const copyText = document.getElementById("safeLinkResult");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Link berhasil dicopy!");
+        }
+
+        // --- ANIMASI WORMS BACKGROUND ---
+        document.addEventListener("DOMContentLoaded", function() {
+            const cvs = document.getElementById('worm-canvas');
+            const ctx = cvs.getContext('2d');
+            let width, height;
+            function resize() { width = cvs.width = window.innerWidth; height = cvs.height = window.innerHeight; }
+            window.addEventListener('resize', resize); resize();
+
+            class Worm {
+                constructor() { this.reset(); }
+                reset() { 
+                    this.x = Math.random() * width; this.y = Math.random() * height; 
+                    this.vx = (Math.random()-0.5)*1.5; this.vy = (Math.random()-0.5)*1.5; 
+                    this.history = []; this.len = 15; 
+                }
+                update() { 
+                    this.x+=this.vx; this.y+=this.vy; 
+                    if(this.x<0||this.x>width)this.vx*=-1; if(this.y<0||this.y>height)this.vy*=-1; 
+                    this.history.unshift({x:this.x,y:this.y}); if(this.history.length>this.len)this.history.pop(); 
+                }
+                draw() { 
+                    ctx.beginPath(); 
+                    if(this.history.length>0)ctx.moveTo(this.history[0].x,this.history[0].y); 
+                    this.history.forEach(p=>ctx.lineTo(p.x,p.y)); 
+                    ctx.strokeStyle='#00ff9d'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke(); 
+                }
+            }
+            const worms = Array.from({length:6}, ()=>new Worm());
+            function animate() { 
+                ctx.clearRect(0,0,width,height); worms.forEach(w=>{w.update(); w.draw();}); 
+                requestAnimationFrame(animate); 
+            }
+            animate();
+        });
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCdtm-NUkdihmIztpecTfAjTOchaGGs_0Q",
+            authDomain: "rmdzav-official-pro.firebaseapp.com",
+            databaseURL: "https://rmdzav-official-pro-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rmdzav-official-pro",
+            storageBucket: "rmdzav-official-pro.firebasestorage.app",
+            messagingSenderId: "170049951214",
+            appId: "1:170049951214:web:b6885229b89bcdb96eaaff",
+            measurementId: "G-7TVX813RRZ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const _0xSEC = "cmFtb2R6b2ZmaWNpYWxAZ21haWwuY29t"; 
+
+        onAuthStateChanged(auth, (user) => {
+            const gate = document.getElementById('gatekeeper');
+            if (user) {
+                if (btoa(user.email) === _0xSEC) {
+                    console.log("Access Granted");
+                    gate.style.display = 'none';
+                } else {
+                    alert("SECURITY ALERT: Akses Ditolak!");
+                    window.location.replace("index.html");
+                }
+            } else {
+                alert("ACCESS DENIED: Login Admin Required.");
+                window.location.replace("index.html");
+            }
+        });
+
+        window.verifyAdmin = async () => {
+            const email = document.getElementById('secEmail').value;
+            const pass = document.getElementById('secPass').value;
+            const btnUpload = document.getElementById('uploadBtn');
+            const secBox = document.getElementById('securityBox');
+            const secTitle = document.getElementById('secTitle');
+            const secInputs = document.getElementById('secInputs');
+
+            if(!email || !pass) { alert("Isi kredensial Admin!"); return; }
+            if(btoa(email) !== _0xSEC) { alert("AKSES DITOLAK!"); return; }
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                alert("Verifikasi Berhasil!");
+                secBox.classList.add('unlocked');
+                secTitle.innerHTML = '<i class="fas fa-check-circle"></i> AUTHORIZED: RmdzAV';
+                secInputs.style.display = 'none';
+                btnUpload.disabled = false;
+                btnUpload.classList.add('active');
+                btnUpload.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> UPLOAD SEKARANG';
+            } catch (error) {
+                console.error(error);
+                alert("VERIFIKASI GAGAL: Password Salah!");
+            }
+        }
+
+        window.addFileRow = () => {
+            const container = document.getElementById('files-container');
+            const allRows = container.querySelectorAll('.file-entry');
+            let prevName="", prevSize="", prevNote="", prevStatus="Free";
+            if(allRows.length > 0) {
+                const lastRow = allRows[allRows.length - 1];
+                prevName = lastRow.querySelector('.f-name').value;
+                prevSize = lastRow.querySelector('.f-size').value;
+                prevNote = lastRow.querySelector('.f-note').value;
+                prevStatus = lastRow.querySelector('.f-status').value;
+            }
+            const div = document.createElement('div');
+            div.className = 'file-entry';
+            div.innerHTML = `
+                <input type="text" class="f-name" placeholder="Nama File" value="${prevName}">
+                <input type="text" class="f-size" placeholder="Size" value="${prevSize}">
+                <input type="text" class="f-note" placeholder="Server" value="${prevNote}">
+                <select class="f-status">
+                    <option value="Free" ${prevStatus==='Free'?'selected':''}>Free</option>
+                    <option value="Paid" ${prevStatus==='Paid'?'selected':''}>Paid</option>
+                </select>
+                <input type="text" class="f-link" placeholder="Link / 'unlock'" value="">
+                <button type="button" class="btn btn-del" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+            `;
+            container.appendChild(div);
+        }
+        addFileRow();
+
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('uploadBtn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> UPLOADING...';
+            btn.disabled = true;
+            try {
+                const fileEntries = document.querySelectorAll('.file-entry');
+                let filesArray = [];
+                fileEntries.forEach(row => {
+                    const name = row.querySelector('.f-name').value;
+                    let link = row.querySelector('.f-link').value;
+                    if(link.toLowerCase().trim() === 'unlock') link = 'rz-password-features-heieienjdididuueie839ej.html';
+                    if(name && link) { 
+                        filesArray.push({
+                            name: name,
+                            size: row.querySelector('.f-size').value || '-',
+                            note: row.querySelector('.f-note').value || '',
+                            status: row.querySelector('.f-status').value,
+                            link: link
+                        });
+                    }
+                });
+                if(filesArray.length === 0) throw new Error("Minimal isi 1 file!");
+                const newProject = {
+                    title: document.getElementById('title').value,
+                    category: document.getElementById('category').value,
+                    date: document.getElementById('date').value,
+                    image_url: document.getElementById('image_url').value,
+                    files: filesArray
+                };
+                await addDoc(collection(db, "projects"), newProject);
+                alert("SUKSES UPLOAD PROJECT!");
+                window.location.reload(); 
+            } catch (error) {
+                alert("Error: " + error.message);
+                btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> UPLOAD SEKARANG';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

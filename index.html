@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RmdzAV Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="light-orb orb-1"></div>
+    <div class="light-orb orb-2"></div>
+    <header>
+        <div class="header-main">
+            <div class="avatar-container" onclick="toggleAvatarMenu()">
+                <div class="avatar">
+                    <img src="https://ik.imagekit.io/rmdzAV/Sheva%20Personality/icon_am.jpg?updatedAt=1766862114435" alt="Avatar">
+                </div>
+                <div id="avatarDropdown">
+                    </div>
+            </div>
+
+            <div class="brand-logo">RMDZ<span>AV</span></div>
+            
+            <div class="right-menu">
+                <button class="icon-btn" onclick="toggleSearch()"><i class="fa fa-search"></i></button>
+                
+                <button class="icon-btn" id="filterBtn" onclick="toggleMenu('filterMenu')"><i class="fa fa-sliders-h"></i></button>
+                <div id="filterMenu" class="floating-menu">
+                    <button class="menu-item active" onclick="setFilter('All', this)">ALL CATEGORIES</button>
+                    <button class="menu-item" onclick="setFilter('PXL PRO', this)">PXL PRO</button>
+                </div>
+
+                <button class="icon-btn" id="sortBtn" onclick="toggleMenu('sortMenu')"><i class="fa fa-sort-amount-down"></i></button>
+                <div id="sortMenu" class="floating-menu">
+                    <button class="menu-item active" onclick="setSort('dateDesc', this)">NEWEST</button>
+                    <button class="menu-item" onclick="setSort('dateAsc', this)">OLDEST</button>
+                    <button class="menu-item" onclick="setSort('nameAsc', this)">A-Z</button>
+                </div>
+            </div>
+        </div>
+
+        <nav class="nav-bar">
+            <button class="nav-btn active" onclick="switchTab('Project')"><i class="fas fa-cube"></i> PROJECT</button>
+            <button class="nav-btn" onclick="switchTab('Stats')"><i class="fas fa-chart-line"></i> STATS</button>
+            <button class="nav-btn" onclick="switchTab('Community')"><i class="fas fa-users"></i> COMMUNITY</button>
+            <button class="nav-btn" onclick="switchTab('License')"><i class="fas fa-shield-alt"></i> LICENSE</button>
+        </nav>
+
+        <div id="searchContainer">
+            <input type="text" id="searchInput" class="search-input" placeholder="SEARCH PROJECT..." onkeyup="handleSearch(this.value)">
+        </div>
+    </header>
+
+    <main>
+        <div id="Project" class="tab-content active">
+            <div class="project-grid" id="project-container">
+                <p style="color: #888; text-align: center; grid-column: 1/-1; margin-top: 50px;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading Database...
+                </p>
+            </div>
+        </div>
+
+        <div id="Stats" class="tab-content">
+            <div class="stats-wrapper">
+                <div class="stats-left-col">
+                    <div class="stats-top-row">
+                        <div class="neon-box small-box">
+                            <div class="stat-label">TOTAL PROJECT</div>
+                            <div class="stat-num"><i class="fa fa-file-alt"></i> <span id="total-projects">0</span></div>
+                        </div>
+                        <div class="neon-box small-box">
+                            <div class="stat-label">ONLINE VISITORS</div>
+                            <div class="stat-num"><i class="fa fa-wifi"></i> <span id="visitors">0</span></div>
+                        </div>
+                    </div>
+                    <div class="neon-box graph-container">
+                        <div class="stat-label" style="text-align: center;">UPLOAD FREQUENCY</div>
+                        <div class="chart-wrapper"><canvas id="uploadChart"></canvas></div>
+                        <div id="graphFooter" style="text-align: center; font-size: 0.8rem; margin-top: 5px; color: var(--primary);">STATISTIK BULANAN</div>
+                    </div>
+                </div>
+                
+                <div class="stats-right-col">
+                    <div class="neon-box calendar-container">
+                        <div class="cal-header">
+                            <span>TIMELINE</span>
+                            <div class="custom-select-wrapper">
+                                <select id="monthSelector" class="styled-select">
+                                    <option value="2025-12">DESEMBER 2025</option>
+                                    <option value="2026-01" selected>JANUARI 2026</option>
+                                    <option value="2026-02">FEBRUARI 2026</option>
+                                    <option value="2026-03">MARET 2026</option>
+                                    <option value="2026-04">APRIL 2026</option>
+                                    <option value="2026-05">MEI 2026</option>
+                                    <option value="2026-06">JUNI 2026</option>
+                                    <option value="2026-07">JULI 2026</option>
+                                    <option value="2026-08">AGUSTUS 2026</option>
+                                    <option value="2026-09">SEPTEMBER 2026</option>
+                                    <option value="2026-10">OKTOBER 2026</option>
+                                    <option value="2026-11">NOVEMBER 2026</option>
+                                    <option value="2026-12">DESEMBER 2026</option>
+                                </select>
+                                <i class="fas fa-chevron-down select-arrow"></i>
+                            </div>
+                        </div>
+                        <div class="cal-grid" id="cal-grid"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="Community" class="tab-content">
+            <div class="community-container">
+                
+                <div id="chat-gate" class="chat-gate">
+                    <div class="gate-icon"><i class="fas fa-comments"></i></div>
+                    <h3>GLOBAL COMMUNITY</h3>
+                    <p>Memuat status akun...</p>
+                </div>
+
+                <div id="chat-interface" class="chat-interface" style="display: none;">
+                    <div class="chat-header">
+                        <div class="ch-left">
+                            <i class="fas fa-globe-asia"></i> GLOBAL CHAT
+                        </div>
+                        <div class="ch-right">
+                            <span class="status-dot"></span> LIVE
+                        </div>
+                    </div>
+                    
+                    <div id="chat-messages" class="chat-messages">
+                        </div>
+
+                    <div class="chat-input-area">
+                        <input type="text" id="msgInput" placeholder="Ketik pesan disini..." onkeypress="handleEnter(event)" autocomplete="off">
+                        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="License" class="tab-content">
+            <div class="neon-box license-box">
+                <h3><i class="fas fa-file-contract"></i> TERMS OF USE</h3>
+                <p>
+                    THIS LICENSE EXPLAINS HOW THE APPLICATIONS I DEVELOP (INCLUDING PXL PRO AND OTHER TOOLS IN THE PXL PROJECT ECOSYSTEM) MAY BE USED.
+                    <br><br>
+                    BY INSTALLING OR USING ANY OF THESE APPLICATIONS, YOU AGREE THAT THE INTELLECTUAL PROPERTY REMAINS WITH <strong>RMDZAV</strong>. THESE TOOLS ARE PROVIDED "AS IS" FOR CREATIVE AND EDUCATIONAL PURPOSES.
+                </p>
+
+                <h3 style="margin-top: 40px; border-top: 1px solid #333; padding-top: 20px;"><i class="fas fa-user-shield"></i> PRIVACY POLICY</h3>
+<p>
+    <strong>1. PXL PROJECT & PXL PRO</strong><br>
+    THIS WEBSITE SERVES AS A HUB FOR SHARING APPLICATIONS CREATED BY RMDZAV, WITH "PXL PRO" AS THE MAIN PROJECT. WE HIGHLY VALUE USER PRIVACY.
+    <br><br>
+    <strong>2. DATA COLLECTION</strong><br>
+    WE DO NOT COLLECT PERSONAL DATA THROUGH THE APPLICATIONS THEMSELVES UNLESS EXPLICITLY STATED OTHERWISE (E.G., FOR COMMUNITY LOGIN FEATURES). YOUR EMAIL AND PASSWORD ARE ENCRYPTED AND USED SOLELY FOR AUTHENTICATION.
+    <br><br>
+    <strong>3. COPYRIGHT</strong><br>
+    ALL PROJECTS ARE CREATED AND MANAGED BY <strong>RMDZAV</strong>.
+    <br><br>
+    CONTACT: <strong>RMDZAV.OFFICIAL.01@GMAIL.COM</strong>
+</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-box">
+            <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+            <h3 style="color:var(--primary); margin-bottom:20px;">ACCOUNT LOGIN</h3>
+            <input type="email" id="email" class="modal-input" placeholder="Email Address">
+            <input type="password" id="password" class="modal-input" placeholder="Password">
+            <button class="modal-btn" onclick="handleLogin()">LOG IN</button>
+            <p id="loginError" style="color:red; margin-top:10px; font-size:0.8rem;"></p>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal-overlay">
+        <div class="modal-box" style="border-color: #00ccff; box-shadow: 0 0 20px rgba(0,204,255,0.3);">
+            <span class="close-modal" onclick="closeRegisterModal()">&times;</span>
+            <h3 style="color:#00ccff; margin-bottom:20px;">DAFTAR KOMUNITAS</h3>
+            
+            <div id="regForm">
+                <input type="text" id="regName" class="modal-input" placeholder="Nickname (Display Name)" required>
+                <input type="email" id="regEmail" class="modal-input" placeholder="Email Address (Wajib Aktif)" required>
+                <input type="password" id="regPass" class="modal-input" placeholder="Password (Min. 6 Karakter)" required>
+                <input type="password" id="regPassConf" class="modal-input" placeholder="Konfirmasi Password" required>
+                
+                <button class="modal-btn" onclick="handleRegister()" style="background: #00ccff; color: black;">
+                    DAFTAR SEKARANG <i class="fas fa-user-plus"></i>
+                </button>
+                
+                <p style="color:#aaa; font-size:0.8rem; margin-top:15px; line-height:1.4;">
+                    *Link Verifikasi akan dikirim ke email.<br>
+                    Anda wajib klik link tersebut untuk bergabung.
+                </p>
+            </div>
+            
+            <p id="regError" style="color:red; margin-top:10px; font-size:0.8rem;"></p>
+        </div>
+    </div>
+
+    <div id="backupModal" class="modal-overlay">
+        <div class="modal-box" style="border-color: #ffcc00; box-shadow: 0 0 30px rgba(255, 204, 0, 0.3);">
+            <span class="close-modal" onclick="closeBackupModal()">&times;</span>
+            <h3 style="color:#ffcc00;">ADMIN BACKUP</h3>
+            <p style="color:#aaa; font-size:0.8rem; margin-bottom:20px;">Verifikasi Admin Utama untuk mengunduh Database.</p>
+            <input type="email" id="backupEmail" class="modal-input" placeholder="Email Admin">
+            <input type="password" id="backupPass" class="modal-input" placeholder="Password Admin">
+            <button class="modal-btn" onclick="handleBackup()" style="background:#ffcc00; color:black;">
+                <i class="fas fa-download"></i> DOWNLOAD DATABASE
+            </button>
+            <p id="backupError" style="color:red; margin-top:10px; font-size:0.8rem;"></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy;2025 RmdzAV Official, All Rights Reserved</p>
+        <p>Website By <a href="https://t.me/rmdzAV" target="_blank">RmdzAV</a></p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>

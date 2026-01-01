@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RmdzAV Download Gateway</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* =========================================
+           STYLE FINAL: GLASS & BACKGROUND LIGHTS
+           ========================================= */
+        
+        :root {
+            --primary: #00ff9d;
+            --secondary: #00ccff;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #050505;
+            position: relative;
+            /* Grid Background Tipis */
+            background-image: 
+                linear-gradient(rgba(0, 255, 157, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 157, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        /* --- BACKGROUND LIGHTS (CAHAYA DI BELAKANG) --- */
+        /* Orb 1: Hijau (Primary) */
+        .light-orb.orb-1 {
+            position: fixed; 
+            width: 600px; height: 600px; 
+            background: radial-gradient(circle, rgba(0, 255, 157, 0.2) 0%, rgba(0,0,0,0) 70%); 
+            border-radius: 50%; 
+            pointer-events: none; z-index: -2; /* Di belakang konten */
+            top: 10%; left: 10%;
+            animation: moveOrb1 15s infinite alternate ease-in-out;
+            filter: blur(60px);
+        }
+
+        /* Orb 2: Biru (Secondary) */
+        .light-orb.orb-2 {
+            position: fixed; 
+            width: 500px; height: 500px; 
+            background: radial-gradient(circle, rgba(0, 204, 255, 0.15) 0%, rgba(0,0,0,0) 70%); 
+            border-radius: 50%; 
+            pointer-events: none; z-index: -2;
+            bottom: 10%; right: 10%;
+            animation: moveOrb2 18s infinite alternate ease-in-out;
+            filter: blur(50px);
+        }
+
+        @keyframes moveOrb1 { 
+            0% { transform: translate(0, 0) scale(1); } 
+            100% { transform: translate(100px, 50px) scale(1.1); } 
+        }
+        @keyframes moveOrb2 { 
+            0% { transform: translate(0, 0) scale(1); } 
+            100% { transform: translate(-150px, -80px) scale(1.2); } 
+        }
+
+        /* Vignette Gelap agar fokus ke tengah */
+        body::after {
+            content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 10%, #050505 120%);
+            pointer-events: none; z-index: -1;
+        }
+
+        /* --- CONTAINER --- */
+        .vault-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; max-width: 550px; margin: 0 auto; padding: 30px 20px;
+            position: relative; z-index: 10;
+        }
+
+        /* BRANDING */
+        .vault-brand {
+            font-size: 3rem; font-weight: 900; color: white;
+            letter-spacing: 4px; margin-bottom: 5px;
+            text-shadow: 0 0 25px rgba(0, 255, 157, 0.6);
+            text-align: center;
+        }
+        .vault-brand span { color: var(--primary); }
+        
+        .vault-subtitle {
+            font-size: 0.85rem; color: #888; letter-spacing: 4px;
+            margin-bottom: 30px; font-weight: 600; text-transform: uppercase;
+            border-bottom: 2px solid var(--primary); padding-bottom: 8px;
+        }
+
+        .vault-icon {
+            font-size: 3.5rem; color: var(--primary);
+            margin-bottom: 25px;
+            filter: drop-shadow(0 0 20px rgba(0,255,157,0.4));
+            animation: shieldFloat 4s ease-in-out infinite;
+        }
+        @keyframes shieldFloat { 0%, 100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(-10px); opacity: 0.8; } }
+        
+        /* =================================================================
+           KOTAK GLASSMORPHISM (BERSIH TRANSPARAN)
+           ================================================================= */
+        .file-info-box {
+            /* Efek Kaca Transparan */
+            background: rgba(20, 20, 20, 0.4); /* Sangat transparan agar background terlihat */
+            backdrop-filter: blur(15px);       /* Blur background di belakang kotak */
+            -webkit-backdrop-filter: blur(15px);
+            
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.2); /* Highlight atas */
+            border-bottom: 1px solid rgba(0, 0, 0, 0.5);    /* Shadow bawah */
+            
+            padding: 30px; border-radius: 20px; width: 100%;
+            margin-bottom: 30px; text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Efek Kilau Kaca (Sheen) saat Hover */
+        .file-info-box::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-20deg);
+            transition: 0.5s;
+        }
+        .file-info-box:hover::before { left: 150%; transition: 0.7s ease-in-out; }
+        
+        .file-info-box:hover {
+            border-color: rgba(0, 255, 157, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        .status-text { font-size: 1.1rem; font-weight: bold; color: white; margin-bottom: 15px; letter-spacing: 1px; }
+        
+        .secure-badge { 
+            display: inline-block; background: rgba(0, 255, 157, 0.1); color: var(--primary); 
+            padding: 6px 18px; border-radius: 50px; font-size: 0.75rem; 
+            border: 1px solid rgba(0, 255, 157, 0.3); margin-bottom: 20px; font-weight: 800;
+        }
+
+        /* LOADING BAR */
+        .scan-bar-wrapper {
+            width: 100%; height: 8px; background: rgba(0,0,0,0.3); border-radius: 10px;
+            margin: 15px 0; overflow: hidden; position: relative;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .scan-progress {
+            width: 0%; height: 100%; 
+            background-color: var(--primary);
+            background-image: linear-gradient(45deg,rgba(0,0,0,.2) 25%,transparent 25%,transparent 50%,rgba(0,0,0,.2) 50%,rgba(0,0,0,.2) 75%,transparent 75%,transparent);
+            background-size: 1rem 1rem;
+            animation: progressStripe 1s linear infinite;
+            box-shadow: 0 0 15px var(--primary); 
+            transition: width 0.2s ease-out;
+        }
+        @keyframes progressStripe { from {background-position: 1rem 0} to {background-position: 0 0} }
+
+        /* TOMBOL UTAMA */
+        .cyber-btn-lg {
+            width: 100%; padding: 20px;
+            background: rgba(30, 30, 30, 0.6); 
+            backdrop-filter: blur(5px);
+            color: #777; 
+            border: 1px solid #333;
+            border-radius: 15px;
+            font-size: 1.1rem; font-weight: 800;
+            cursor: not-allowed; text-transform: uppercase; 
+            transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            letter-spacing: 2px;
+        }
+        
+        .cyber-btn-lg.active {
+            background: var(--primary); color: #000; border-color: var(--primary);
+            cursor: pointer; 
+            box-shadow: 0 0 30px rgba(0, 255, 157, 0.3);
+        }
+        .cyber-btn-lg.active:hover { 
+            transform: scale(1.02);
+            box-shadow: 0 0 50px rgba(0, 255, 157, 0.5);
+        }
+
+        /* AREA IKLAN (Juga Glassmorphism Tipis) */
+        .ads-box {
+            width: 100%; min-height: 100px;
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            color: #555; font-weight: bold; font-size: 0.8rem;
+            border-radius: 10px; margin: 20px 0; overflow: hidden;
+            transition: 0.3s;
+        }
+        .ads-box:hover { border-color: var(--primary); color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="light-orb orb-1"></div>
+    <div class="light-orb orb-2"></div>
+    <div class="neon-worm-container"></div>
+
+    <div class="vault-container">
+        
+        <div class="vault-brand">RMDZ<span>AV</span></div>
+        <div class="vault-subtitle">SECURE DOWNLOAD GATEWAY</div>
+
+        <div class="vault-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+
+        <div class="file-info-box">
+            <div class="status-text" id="fileStatusText">ESTABLISHING CONNECTION...</div>
+            <div class="secure-badge"><i class="fas fa-lock"></i> END-TO-END ENCRYPTED</div>
+            
+            <p style="color: #bbb; font-size: 0.9rem; margin-bottom: 20px; line-height: 1.6;">
+                File Anda disimpan di server eksternal yang aman.<br>
+                Sistem sedang memverifikasi integritas tautan.
+            </p>
+
+            <div class="scan-bar-wrapper">
+                <div class="scan-progress" id="scanProgress"></div>
+            </div>
+            <div id="scanText" style="font-family: 'Courier New', monospace; color: var(--primary); font-size: 0.85rem; font-weight:bold;">INITIALIZING...</div>
+        </div>
+
+        <div class="ads-box">
+            <script>
+  atOptions = {
+    'key' : '377a871b94d9d08672272286d3ebf270',
+    'format' : 'iframe',
+    'height' : 90,
+    'width' : 728,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/377a871b94d9d08672272286d3ebf270/invoke.js"></script>
+        </div>
+
+        <button id="finalBtn" class="cyber-btn-lg" onclick="executeDownload()">
+            <i class="fas fa-lock"></i> LOCKED
+        </button>
+
+         <div class="ads-box">
+            <script>
+  atOptions = {
+    'key' : '377a871b94d9d08672272286d3ebf270',
+    'format' : 'iframe',
+    'height' : 90,
+    'width' : 728,
+    'params' : {}
+  };
+</script>
+<script src="https://www.highperformanceformat.com/377a871b94d9d08672272286d3ebf270/invoke.js"></script>
+        </div>
+        
+        <a href="index.html" style="margin-top: 25px; color: #666; text-decoration: none; font-size: 0.85rem; font-weight: bold; transition:0.3s; text-transform:uppercase;" onmouseover="this.style.color='#00ff9d'" onmouseout="this.style.color='#666'">
+            &larr; KEMBALI KE BERANDA
+        </a>
+
+        <div style="margin-top: 30px; font-size: 0.7rem; color: #444; letter-spacing: 1px;">
+            &copy; 2025 RmdzAV Official. Secured by Firebase.
+        </div>
+
+    </div>
+
+    <script type="module" src="script.js"></script>
+
+    <script>
+        let realLink = "";
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const encrypted = params.get('data');
+
+            if(!encrypted) {
+                document.getElementById('scanText').innerText = "LINK ERROR: INVALID PARAMETER";
+                document.getElementById('scanText').style.color = "#ff4444";
+                return;
+            }
+
+            try {
+                realLink = atob(encrypted);
+            } catch(e) {
+                document.getElementById('scanText').innerText = "SYSTEM ERROR: DECRYPTION FAILED";
+                document.getElementById('scanText').style.color = "#ff4444";
+                return;
+            }
+
+            // Animasi Loading
+            const bar = document.getElementById('scanProgress');
+            const txt = document.getElementById('scanText');
+            const statusTxt = document.getElementById('fileStatusText');
+            const btn = document.getElementById('finalBtn');
+            let width = 0;
+
+            const interval = setInterval(() => {
+                // Kecepatan loading (acak agar natural)
+                width += Math.random() * 8; 
+                
+                // Pastikan width tidak melebihi 100 sebelum dicek di bawah
+                if(width > 100) {
+                    width = 100;
+                }
+
+                bar.style.width = width + "%";
+                
+                if(width < 30) {
+                    txt.innerText = "AUTHENTICATING...";
+                } else if(width < 70) {
+                    txt.innerText = "SCANNING FOR MALWARE...";
+                    statusTxt.innerText = "VERIFYING SECURITY...";
+                } else if(width < 100) {
+                    txt.innerText = "GENERATING TOKEN...";
+                } else {
+                    // SUDAH 100%
+                    clearInterval(interval);
+                    
+                    // Update Text Akhir
+                    txt.innerText = "SECURE LINK READY";
+                    statusTxt.innerText = "FILE IS READY TO DOWNLOAD";
+                    statusTxt.style.color = "var(--primary)";
+                    
+                    // Unlock Button
+                    btn.classList.add('active');
+                    btn.innerHTML = '<i class="fas fa-download"></i> DOWNLOAD FILE';
+                }
+            }, 100);
+        });
+
+        function executeDownload() {
+            if(!realLink) return;
+            const btn = document.getElementById('finalBtn');
+            if(!btn.classList.contains('active')) return;
+
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> REDIRECTING...';
+            
+            setTimeout(() => {
+                window.location.href = realLink;
+            }, 800);
+        }
+    </script>
+</body>
+</html>
